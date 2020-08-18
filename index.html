@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="initial-scale=1.0">
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  background: black;
+}
+#map {
+        height: 100%;
+      }
+
+#titlediv {
+  font-family: monospace;
+  text-align: center;
+  font-size:48px;
+  position:fixed;
+  width:100%;
+  height:50px;
+  color:white;
+  background-color:black;
+  padding:5px;
+  top:0px;
+  overflow-y: auto;
+}
+
+#attackdiv {
+  font-family: monospace;
+  font-size:10px;
+  position:fixed;
+  width:50%;
+  height:100px;
+  color:white;
+  background-color:black;
+  padding:5px;
+  bottom:0px;
+  overflow-y: auto;
+}
+#attacksdetails{
+  font-family: monospace;
+  font-size:15px;
+  height:96%;
+  color:white;
+  padding:5px;
+  bottom:0px;
+  overflow-y: auto;
+
+}
+
+#container1 {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  max-width:100%;
+  max-height:100%
+}
+
+#about {
+  display: hidden;
+}
+
+#aboutdiv {
+  text-align:right;
+  width:100px;
+  height:100px;
+  top:0px;
+  right:0px;
+  position:fixed;
+  padding:10px;
+  color: white;
+}
+#about {display:none;}
+
+#attacksdetails{
+  display:hidden;
+}
+#attacksdetailsdiv {
+  text-align:right;
+  width:100px;
+  height:100px;
+  top:0px;
+  right:0px;
+  position:fixed;
+  padding:10px;
+  color: white;
+}
+
+#attacksdetails {display:none;}
+
+/* Overlay */
+#simplemodal-overlay {background-color:#000;}
+
+/* Container */
+#simplemodal-container {height:460px; width:600px; color:#bbb; background-color:#333; border:4px solid #444; padding:12px;}
+#simplemodal-container .simplemodal-data {padding:8px;}
+#simplemodal-container code {background:#141414; border-left:3px solid #65B43D; color:#bbb; display:block; font-size:12px; margin-bottom:12px; padding:4px 6px 6px;}
+#simplemodal-container a {color:#ddd;}
+#simplemodal-container a.modalCloseImg {background:url(../img/basic/x.png) no-repeat; width:25px; height:29px; display:inline; z-index:3200; position:absolute; top:-15px; right:-16px; cursor:pointer;}
+#simplemodal-container h2 {color:#84b8d9;}
+#simplemodal-container a.modalCloseImg {
+  background:url(x.png) no-repeat; /* adjust url as required */
+  width:25px;
+  height:29px;
+  display:inline;
+  z-index:3200;
+  position:absolute;
+  top:-15px;
+  right:-18px;
+  cursor:pointer;
+}
+#simplemodal-container span {
+  font-size:18px;
+  line-height: 1.2;
+
+}
+
+#stats{
+  font-family: monospace;
+  font-size:14px;
+  position:absolute;
+  top:130px;
+  right:5px;
+  color:white;
+  background-color:black;
+  border:2px solid brown;
+  border-radius:20%;
+  padding:1%;
+  padding-top:0;
+}
+
+#names{
+  font-family: monospace;
+  font-size:14px;
+  position:absolute;
+  top:20px;
+  left:20px;
+  color:white;
+  background-color:black;
+}
+#honeypot{
+  font-family: monospace;
+  font-size:14px;
+  position:absolute;
+  top:130px;
+  left:20px;
+  color:white;
+  background-color:black;
+  border:2px solid brown;
+  border-radius:20%;
+  padding:1%;
+  padding-top:0;
+}
+#newxhr{
+  font-family: monospace;
+  font-size:14px;
+  position:absolute;
+  color:white;
+  background-color:black;
+
+h3{
+  text-decoration:underline;
+}
+
+i{
+  cursor: pointer;
+}
+
+
+
+</style>
+
+<script src="https://d3js.org/d3.v3.min.js"></script>
+<script src="https://d3js.org/d3.geo.projection.v0.min.js"></script>
+<script src="https://d3js.org/topojson.v1.min.js"></script>
+<script src="https://datamaps.github.io/scripts/datamaps.world.min.js?v=1"></script>
+<script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+<script src="jquery.simplemodal-1.4.4.js"></script>
+<!-- <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD5i-uJZh-eAUBoJtotTeoCX09qhATsr5w&callback=initMap" async defer></script> -->
+<script>
+function about() {
+  $("#about").modal();
+}
+function attacksdetails() {
+  $("#attacksdetails").modal();
+}
+</script>
+
+<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+  <audio id="starwars" src="Blaster-Solo.wav" preload="auto"></audio>
+
+
+  <center><div id="container1"></div></center>
+  <div id="titlediv">Cyber Threat Map</div>
+  <div id="attackdiv"></div>
+  <div id="aboutdiv"><i class="fa fa-question-circle fa-2x" onClick="about();"></i></div>
+  <div id ="names"> Tal B & Shir T</div>
+  <div id="stats"> 
+  <h3><span id="date"></span> stats</h3>
+  <p>Total attacks today:<br><span id="attackscount"></span></p>
+  <p>Most common attack:<br><span id="common"></span> - <span id="num_common"></span></p>
+  <p>Severe attacks: <span id ="redattck"></span></p>
+  <p>Common attacks: <span id="greenattck"></span></p>  
+    </div>
+   <div id ="honeypot">
+      <h3>Honeypot information</h3>
+      <p>Location- USA <br> Lat- 32.995 Long- -96.785</p>
+      Attacks today: <span id="attckisr"></span>
+      <i class="fa fa-exclamation-circle fa-2x" onclick="attacksdetails()"></i>
+  </div>
+
+  <div id="about">
+  <h2>About Cyber threat map</h2>
+  <span>This map was designed in order to illustrate the way cyber threat maps work, and the type of conclusions that cyber experts could derive from them. The map also includes an implementation of a Honey Pot which allows us to examine more about the different attacks that are being identified.<br><br>
+  Cyber threat maps are a visual representation of realtime cyber attacks, which allows cyber specialists to maintain control over their organization's safety, and respond quickly and effectively to the different threats they might be facing.
+<br><br><br></span>
+  Created by <a target=_blank href="mailto:talbaram3192@gmail.com">@Tal Baram</a> & <a target=_blank href="mailto:shirki950@gmail.com">@Shir Tsruya</a> 
+  </div>
+  <div id="attacksdetails">
+     <h2>Attacks logs</h2>
+
+  </div>
+
+  <!-- Use Hash-Bang to maintain scroll position when closing modal -->
+  <a href="#!" class="modal-close" title="Close this modal"
+      data-dismiss="modal" data-close="Close">&times;</a>
+</section>
+
+
+  <script>
+
+    // setup default min/max timer range for random draw
+    attack_min = 100 ;
+    attack_max = 2000 ;
+
+    // add/change the attack types here
+     attack_type = [ "DNS attack", "Phishing",
+                    "SYN FLOOD attack", "Trojan Horse", "DDos Attack", "Dos Attack", "Cryptomining",
+                    "Mitm", "Ping Flood", "Teardrop Attack", "Smurf", "IP spoofing",
+                    "Replay Attack", "Password Attack", "SQL Injection" ] ;
+
+
+  
+  
+   
+	var countattacks=0;  	//for statistics
+  var countisrattacks=0;
+	var countgreen =0;
+	var countred =0;
+	var attcks=[
+	    {attck:"DNS attack", count:0},
+		{attck:"Botnet Attack", count:0},
+		{attck:"Phishing", count:0},
+		{attck:"Trojan Horse", count:0},
+		{attck:"DDos Attack", count:0},
+		{attck:"Dos Attack", count:0},
+		{attck:"Cryptomining", count:0},
+		{attck:"Mitm", count:0},
+		{attck:"Ping Flood", count:0},
+		{attck:"Teardrop Attack", count:0},
+		{attck:"Smurf", count:0},
+		{attck:"IP spoofing", count:0},
+		{attck:"Replay Attack", count:0},
+		{attck:"Password Attack", count:0},
+		{attck:"SQL Injection", count:0}
+	];
+	var AttacksLogs=[];
+    var countlogs=0;
+	
+  var honeypotsattacks=new Array(10);
+  
+
+    if (typeof bad_day !== 'undefined') {
+      attack_min=200;
+      attack_max=200;
+    }
+
+    if (typeof org_name !== 'undefined') { $("#titlediv").text(decodeURI(org_name) + " IPew Attack Map").html() }
+
+    // we maintain a fixed queue of "attacks" via this class
+    function FixedQueue( size, initialValues ){
+      initialValues = (initialValues || []);
+      var queue = Array.apply( null, initialValues );
+      queue.fixedSize = size;
+      queue.push = FixedQueue.push;
+      queue.splice = FixedQueue.splice;
+      queue.unshift = FixedQueue.unshift;
+      FixedQueue.trimTail.call( queue );
+      return( queue );
+    }
+
+    FixedQueue.trimHead = function(){
+      if (this.length <= this.fixedSize){ return; }
+      Array.prototype.splice.call( this, 0, (this.length - this.fixedSize) );
+    };
+
+    FixedQueue.trimTail = function(){
+      if (this.length <= this.fixedSize) { return; }
+      Array.prototype.splice.call( this, this.fixedSize, (this.length - this.fixedSize)
+      );
+    };
+
+    FixedQueue.wrapMethod = function( methodName, trimMethod ){
+      var wrapper = function(){
+        var method = Array.prototype[ methodName ];
+        var result = method.apply( this, arguments );
+        trimMethod.call( this );
+        return( result );
+      };
+      return( wrapper );
+    };
+
+    FixedQueue.push = FixedQueue.wrapMethod( "push", FixedQueue.trimHead );
+    FixedQueue.splice = FixedQueue.wrapMethod( "splice", FixedQueue.trimTail );
+    FixedQueue.unshift = FixedQueue.wrapMethod( "unshift", FixedQueue.trimTail );
+
+    var rand = function(min, max) {
+        return Math.random() * (max - min) + min;
+    };
+
+    var getRandomCountry = function(countries, weight) {
+
+        var total_weight = weight.reduce(function (prev, cur, i, arr) {
+            return prev + cur;
+        });
+
+        var random_num = rand(0, total_weight);
+        var weight_sum = 0;
+
+        for (var i = 0; i < countries.length; i++) {
+            weight_sum += weight[i];
+            weight_sum = +weight_sum.toFixed(2);
+
+            if (random_num <= weight_sum) {
+                return countries[i];
+            }
+        }
+
+    };
+
+
+    var countries = [9,22,29,49,56,58,78,82,102,117,139,176,186] ;
+    var weight = [0.000,0.001,0.004,0.008,0.009,0.037,0.181,0.002,0.000,0.415,0.006,0.075,0.088];
+
+    //
+    // pretty simple setup ->
+    // * make base Datamap
+    // * setup timers to add random events to a queue
+    // * update the Datamap
+
+    var map = new Datamap({
+
+        scope: 'world',
+        element: document.getElementById('container1'),
+        projection: 'winkel3',
+        // change the projection to something else only if you have absolutely no cartographic sense
+
+        fills: { defaultFill: 'black', },
+
+        geographyConfig: {
+          dataUrl: null,
+          hideAntarctica: true,
+          borderWidth: 0.75,
+          borderColor: '#4393c3',
+          popupTemplate: function(geography, data) {
+            return '<div class="hoverinfo" style="color:white;background:black">' +
+                   geography.properties.name + '</div>';
+          },
+          popupOnHover: true,
+          highlightOnHover: false,
+          highlightFillColor: 'black',
+          highlightBorderColor: 'rgba(250, 15, 160, 0.2)',
+          highlightBorderWidth: 2
+        },
+	
+
+      })
+
+    // we read in a modified file of all country centers
+    var centers = [] ;
+    d3.tsv("country_centroids_primary.csv", function(data) { centers = data; });
+    d3.csv("samplatlong.csv", function(data) { slatlong = data; });
+    d3.csv("cnlatlong.csv", function(data) { cnlatlong = data; });
+
+    // setup structures for the "hits" (arcs)
+    // and circle booms
+
+    var hits = FixedQueue( 7, [  ] );
+    var boom = FixedQueue( 7, [  ] );
+
+    // we need random numbers and also a way to build random ip addresses
+    function getRandomInt(min, max) {return Math.floor(Math.random() * (max - min + 1)) + min;}
+    function getOctet() {return Math.round(Math.random()*255);}
+    function randomIP () { return(getOctet() + '.' + getOctet() + '.' + getOctet() + '.' + getOctet()); }
+    function getStroke() {return Math.round(Math.random()*100);}
+    function getDestination() {return Math.round(Math.random()*100);}
+
+    // doing this a bit fancy for a hack, but it makes it
+    // easier to group code functions together and have variables
+    // out of global scope
+    var attacks = {
+
+        interval: getRandomInt(attack_min, attack_max),
+
+        init: function(){
+           setTimeout(
+               jQuery.proxy(this.getData, this),
+               this.interval
+           );
+        },
+
+       getData: function() {
+
+           var self = this;
+
+         
+
+           dst = Math.floor((Math.random() * slatlong.length));
+           src = Math.floor((Math.random() * slatlong.length));
+
+           if ((dst == src)) {
+            dst = src + 1 ;
+            if (dst > slatlong.length-1) { dst = src - 1 }
+           }
+
+         
+
+           var srclat = slatlong[src].lat;
+           var srclong = slatlong[src].long;
+           var dstlat = slatlong[dst].lat;
+           var dstlong = slatlong[dst].long;
+           which_attack = attack_type[Math.floor((Math.random() * attack_type.length))];
+           var srccountry = slatlong[src]["country"];
+          
+           if (typeof destination !== 'undefined' && getDestination() < 80) {
+             dstcountry = destination.toUpperCase();
+             var center_id = 0;
+             for (i = 0; i < centers.length; i ++) {
+               center_id = i;
+               if (centers[i].FIPS10 === dstcountry) {
+                break;
+               }
+             }
+
+             dstcountry = destination.toLowerCase();
+             attackdiv_slatlong = dstcountry;
+             dstlat = centers[center_id].LAT;
+             dstlong = centers[center_id].LONG;
+           }
+           else {
+            attackdiv_slatlong = slatlong[dst]["country"];
+           }
+
+   	   
+		   if((which_attack == "Mitm")
+		     || (which_attack == "SQL Injection") || (which_attack == "Replay Attack") ||
+			 (getStroke() > 85 && which_attack == "DDos Attack")){
+			    strokeColor = 'red';
+				countred++;
+              }	else{
+                   strokeColor = 'green';
+			       countgreen++;
+               }
+			   
+
+           if (typeof drill_mode != 'undefined') {
+
+              dstlat = in_lat
+              dstlong = in_lon
+           }
+
+           hits.push( { origin : { latitude: +srclat, longitude: +srclong },
+                        destination : { latitude: +dstlat, longitude: +dstlong } } );
+           map.arc(hits, {strokeWidth: 2, strokeColor: strokeColor});
+
+           // add boom to the bubbles queue
+
+           boom.push( { radius: 7, latitude: +dstlat, longitude: +dstlong,
+                        fillOpacity: 0.5, attk: which_attack} );
+           map.bubbles(boom, {
+                popupTemplate: function(geo, data) {
+                  return '<div class="hoverinfo">' + data.attk + '</div>';
+                }
+            });
+
+           // update the scrolling attack div
+           var attackerip=randomIP();
+           var victimip=randomIP();
+
+
+
+           $('#attackdiv').append(srccountry + " (" + attackerip + ") " +
+                                  " <span style='color:red'>attacks</span> " +
+                                  attackdiv_slatlong+  " (" + victimip + ") " +
+                                  " <span style='color:steelblue'>(" + which_attack + ")</span> " +
+                                  "<br/>");
+           $('#attackdiv').animate({scrollTop: $('#attackdiv').prop("scrollHeight")}, 500);
+
+           // pick a new random time and start the timer again!
+           this.interval = getRandomInt(attack_min, attack_max);
+           this.init() ;
+		   
+
+       //find most common attack
+
+		   var len=attcks.length;
+		   for(var i=0; i<len; i++){
+		       if(which_attack === attcks[i].attck){
+			      attcks[i].count++;
+			   }
+		   }
+
+		   var max =attcks[0].count;
+		   var index=0;
+		   for(var i=1; i<attcks.length; i++){
+		      if(max < attcks[i].count){
+			     max=attcks[i].count;
+				 index=i;
+				 }
+		   }
+		   
+
+		   var common = attcks[index].attck;
+		   var num_common=max;
+
+       if(midnight == 23 && midnight2 == 59){
+			     countattacks=0;
+           countisrattacks=0;
+				 }
+
+		   if(attackdiv_slatlong == 'usa'){
+         countisrattacks++;
+        var IP2 =[attackerip];
+         var endpoint2 = 'http://ip-api.com/batch';
+         
+         var xhr2 = new XMLHttpRequest();
+         xhr2.onreadystatechange = function() {
+	          if (this.readyState == 4 && this.status == 200) {
+		// Result array
+		            var response2 = JSON.parse(this.responseText);
+		            console.log(response2);
+		            response2.forEach(function (item) {
+		          	console.log(item.query + " is in " + item.city + ", " + item.country + ", " + item.isp); 
+					AttacksLogs.push({query:item.query, city:item.city, country:item.country, zip:item.zip,
+					 isp:item.isp});
+					 for(var i=countlogs;i<AttacksLogs.length;i++){
+            if(strokeColor == 'red'){
+                $('#attacksdetails').append("<span style=font-weight:bold;color:red;>"
+                  +item.query+"</span>" +" attacked you with <span style=color:red;font-weight:bold;>severe</span> <b>"+which_attack+"</b>. the attacker is located in " + item.city + ", " + item.regionName + ", " + item.country + ", zip code: " + item.zip
+                 +", ISP: " + item.isp + ", Organization: " + item.org + "<br><br>")}else{
+                  $('#attacksdetails').append("<span style=font-weight:bold;color:red;>"
+                  +item.query+"</span>" +" attacked you with<span style=color:green;font-weight:bold;> common</span> <b>"+which_attack+ "</b>. the attacker is located in " + item.city + ", " + item.regionName + ", " + item.country + ", zip code: " + item.zip
+                 +", ISP: " + item.isp + ", Organization: " + item.org + "<br><br>")
+                }};
+				 countlogs++;
+               $('#attacksdetails').animate({scrollTop: $('#attacksdetails').prop("scrollHeight")}, 500);
+	          	});
+	         }
+        };
+                var data2 = JSON.stringify(IP2);
+                console.log("sending:", data2);
+                xhr2.open('POST', endpoint2, true);
+                xhr2.send(data2);
+				<!-- require('save.js'); -->
+				
+				
+
+   }
+		   		  		   
+     	   countattacks++;
+		   $('#date').html(datetime);
+		   $('#attackscount').html(countattacks);
+           $('#common').html(common);
+		   $('#num_common').html(num_common);
+		   $('#names').html();
+		   $('#redattck').html(countred);
+		   $('#greenattck').html(countgreen);
+           $('#attckisr').html(countisrattacks);
+		   
+		 
+		   
+
+
+       },
+     
+    };
+
+
+
+
+/////
+               
+
+
+	 var currentdate  = new Date(); 
+          var datetime = currentdate.getDate() + "/"
+                + (currentdate.getMonth()+1)  + "/" 
+                + currentdate.getFullYear();
+				
+		    var newday= new Date();
+		    var midnight = newday.getHours();
+		    var midnight2 = newday.getSeconds();
+			
+
+
+    // start the ball rolling!
+    attacks.init();
+
+    // lazy-dude's responsive window
+    d3.select(window).on('resize', function() { location.reload(); });
+
+</script>
+   
+</body>
+</html>

@@ -1,0 +1,4 @@
+
+Download instructions:
+Could run using any local server service (such as XAMPP).
+Just save the files on the local server's folder (htdocs, if you're using XAMPP) and enter through your browser.
